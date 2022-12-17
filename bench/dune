@@ -1,0 +1,8 @@
+(executable
+ (name bench)
+ (preprocess (pps ppx_jane))
+ (libraries
+  domainslib
+  core
+  core_unix.command_unix
+))
