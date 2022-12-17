@@ -26,6 +26,7 @@ module Par = struct
     let await x = Task.await pool x in
     match String.length s, String.length t with
     | 0, x | x, 0 -> x
+    | len_s, len_t when len_s + len_t < 12 -> Seq.dist s t
     | len_s, len_t ->
       let s' = String.drop_suffix s 1 in
       let t' = String.drop_suffix t 1 in

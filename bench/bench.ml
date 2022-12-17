@@ -28,6 +28,8 @@ let () =
        anon ("benchmark" %: Command.Arg_type.create Benchmark_id.of_string)
      in
      fun () ->
+       (* parallel scheduler takes a single domain automatically *)
+       let num_domains = num_domains - 1 in
        match benchmark with
        | Distance (seq_or_par, a, b) ->
          (match seq_or_par with
