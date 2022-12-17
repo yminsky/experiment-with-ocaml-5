@@ -75,7 +75,7 @@ let long_s =
 ;;
 
 let long_t =
-  "We hold these truths to be self-evident, that all men are created equal, \
+  "We hold these  truths to be self-evident, that all men are created equal, \
    that they are endowed by their Creator with certain unalienable Rights, \
    that among these are life, liberty and the pursuit of Happiness.--That to \
    secure these rights, Governments are instituted among Men, deriving their \
@@ -146,7 +146,12 @@ module Par_memo = struct
 
   (* This is the one bit of shared state, so we lock it when we look
      up in the hashtable, but we release when we do the actual
-     computation. *)
+     computation.
+
+     Note that this can lead to some double-sets, i.e., if the same
+     value is looked for twice, two computations will be dispatched in
+     parallel, and the results will both be used to update the table.
+ *)
   let memoize m f =
     let mx = Mutex.create () in
     let memo_table = Hashtbl.create m in
