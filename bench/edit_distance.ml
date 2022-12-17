@@ -1,4 +1,4 @@
-open! Base
+open! Core
 
 module Seq = struct
   let rec dist s t =
@@ -144,14 +144,26 @@ end
 module Par_memo = struct
   module Mutex = Stdlib.Mutex
 
+  let dup = ref 0
+  let non_dup = ref 0
+
   (* This is the one bit of shared state, so we lock it when we look
      up in the hashtable, but we release when we do the actual
      computation.
 
      Note that this can lead to some double-sets, i.e., if the same
      value is looked for twice, two computations will be dispatched in
-     parallel, and the results will both be used to update the table.
- *)
+     parallel, and the results will both be used to update the
+     table.
+
+     This kinda works, but it's slow. Maybe it could be made better by
+     having things block more, i.e., use conditional variables and
+     mutexes, and allow things to block, so you only compute each
+     thing once; but that's probably going to play poorly with
+     domainslib!
+
+     Also, the rate of creating dups here is crazy high. The whole
+     thing just doesn't make sense.  *)
   let memoize m f =
     let mx = Mutex.create () in
     let memo_table = Hashtbl.create m in
@@ -165,6 +177,7 @@ module Par_memo = struct
         Mutex.unlock mx;
         let res = f x in
         Mutex.lock mx;
+        if Hashtbl.mem memo_table x then Int.incr dup else Int.incr non_dup;
         Hashtbl.set memo_table ~key:x ~data:res;
         Mutex.unlock mx;
         res
@@ -208,6 +221,7 @@ module Par_memo = struct
     let pool = Task.setup_pool ~num_domains () in
     let res = Task.run pool (fun () -> dist pool s t) in
     Task.teardown_pool pool;
+    printf "dup ratio: %f\n%!" (!dup // (!non_dup + !dup));
     res
   ;;
 
