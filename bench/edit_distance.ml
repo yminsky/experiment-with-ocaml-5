@@ -146,6 +146,9 @@ end
 module Par_memo = struct
   module Mutex = Stdlib.Mutex
 
+  (* This is the one bit of shared state, so we lock it when we look
+     up in the hashtable, but we release when we do the actual
+     computation. *)
   let memoize m f =
     let mx = Mutex.create () in
     let memo_table = Hashtbl.create m in
@@ -185,7 +188,6 @@ module Par_memo = struct
       (fun dist (s, t) ->
         match String.length s, String.length t with
         | 0, x | x, 0 -> x
-        | len_s, len_t when len_s + len_t < 30 -> Seq_memo.dist s t
         | len_s, len_t ->
           let s' = String.drop_suffix s 1 in
           let t' = String.drop_suffix t 1 in
