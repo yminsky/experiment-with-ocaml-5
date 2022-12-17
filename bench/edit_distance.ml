@@ -107,10 +107,8 @@ module Seq_memo = struct
   ;;
 
   let memo_rec m f_norec x =
-    let fref = ref (fun _ -> assert false) in
-    let f = memoize m (fun x -> f_norec !fref x) in
-    fref := f;
-    f x
+    let rec f = lazy (memoize m (fun x -> f_norec (force f) x)) in
+    force f x
   ;;
 
   module String_pair = struct
@@ -168,10 +166,8 @@ module Par_memo = struct
   ;;
 
   let memo_rec m f_norec x =
-    let fref = ref (fun _ -> assert false) in
-    let f = memoize m (fun x -> f_norec !fref x) in
-    fref := f;
-    f x
+    let rec f = lazy (memoize m (fun x -> f_norec (force f) x)) in
+    force f x
   ;;
 
   module String_pair = struct
