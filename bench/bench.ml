@@ -46,11 +46,10 @@ module Parallel = struct
       let cost_to_drop_both =
         if Char.( = ) s.[len_s - 1] t.[len_t - 1] then 0 else 1
       in
-      let d1 = Task.async pool (fun () -> edit_distance pool s' t + 1) in
-      let d2 = Task.async pool (fun () -> edit_distance pool s t' + 1) in
-      let d3 =
-        Task.async pool (fun () -> edit_distance pool s' t' + cost_to_drop_both)
-      in
+      let async f = Task.async pool f in
+      let d1 = async (fun () -> edit_distance pool s' t + 1) in
+      let d2 = async (fun () -> edit_distance pool s t' + 1) in
+      let d3 = async (fun () -> edit_distance pool s' t' + cost_to_drop_both) in
       let ( ++ ) = Int.min in
       Task.await pool d1 ++ Task.await pool d2 ++ Task.await pool d3
   ;;
